@@ -1,0 +1,153 @@
+{
+    "dateLastActivity": "2024-12-13T14:49:43.207Z",
+    "PU_ANY_FIELDS-badges": [
+        {
+            "f": 6547,
+            "v": "0-3"
+        }
+    ]
+}
+
+{
+    "id": "6723c5667538610237410acd",
+    "address": null,
+    "badges": {
+        "attachmentsByType": {
+            "trello": {
+                "board": 0,
+                "card": 0
+            }
+        },
+        "externalSource": null,
+        "location": false,
+        "votes": 0,
+        "viewingMemberVoted": false,
+        "subscribed": true,
+        "attachments": 1,
+        "fogbugz": "",
+        "checkItems": 0,
+        "checkItemsChecked": 0,
+        "checkItemsEarliestDue": null,
+        "comments": 0,
+        "description": false,
+        "due": null,
+        "dueComplete": false,
+        "lastUpdatedByAi": false,
+        "start": null
+    },
+    "checkItemStates": [],
+    "closed": false,
+    "coordinates": null,
+    "creationMethod": null,
+    "creationMethodError": null,
+    "dueComplete": false,
+    "dateLastActivity": "2024-12-13T14:49:43.207Z",
+    "dateViewedByCreator": null,
+    "desc": "",
+    "descData": {
+        "emoji": {}
+    },
+    "due": null,
+    "dueReminder": null,
+    "email": "emigallo+2swgtqxwv1cr712ggnk+33er03b6xdpnf6h9kul+27breptiay@boards.trello.com",
+    "idBoard": "5d6971fd91e25d36ded88e36",
+    "idChecklists": [],
+    "idLabels": [
+        "5d6971fd91e25d36ded88ec9"
+    ],
+    "idList": "5d6971fd91e25d36ded88e39",
+    "idMemberCreator": "5d69710e621ef73737a3ce50",
+    "idMembers": [
+        "5d69710e621ef73737a3ce50"
+    ],
+    "idMembersVoted": [],
+    "idOrganization": "5e7cad8d0568d752250b1a50",
+    "idShort": 792,
+    "idAttachmentCover": null,
+    "labels": [
+        {
+            "id": "5d6971fd91e25d36ded88ec9",
+            "idBoard": "5d6971fd91e25d36ded88e36",
+            "idOrganization": "5e7cad8d0568d752250b1a50",
+            "name": "mobile",
+            "nodeId": "ari:cloud:trello::label/workspace/5e7cad8d0568d752250b1a50/5d6971fd91e25d36ded88ec9",
+            "color": "green",
+            "uses": 120
+        }
+    ],
+    "limits": {
+        "attachments": {
+            "perCard": {
+                "status": "ok",
+                "disableAt": 1000,
+                "warnAt": 800
+            }
+        },
+        "checklists": {
+            "perCard": {
+                "status": "ok",
+                "disableAt": 500,
+                "warnAt": 400
+            }
+        },
+        "stickers": {
+            "perCard": {
+                "status": "ok",
+                "disableAt": 70,
+                "warnAt": 56
+            }
+        }
+    },
+    "locationName": null,
+    "manualCoverAttachment": false,
+    "name": "Mover la aplicacion mobile a la cuenta de la empresa - CO",
+    "nodeId": "ari:cloud:trello::card/workspace/5e7cad8d0568d752250b1a50/6723c5667538610237410acd",
+    "pinned": false,
+    "pos": 14.383540278305532,
+    "shortLink": "jRwGRL3O",
+    "shortUrl": "https://trello.com/c/jRwGRL3O",
+    "sourceEmail": null,
+    "staticMapUrl": null,
+    "start": null,
+    "subscribed": true,
+    "url": "https://trello.com/c/jRwGRL3O/792-mover-la-aplicacion-mobile-a-la-cuenta-de-la-empresa-co",
+    "cover": {
+        "idAttachment": null,
+        "color": null,
+        "idUploadedBackground": null,
+        "size": "normal",
+        "brightness": "dark",
+        "idPlugin": null
+    },
+    "isTemplate": false,
+    "cardRole": null,
+    "mirrorSourceNodeId": null,
+    "attachments": [
+        {
+            "id": "673c88e41e5795ac42c97eb5",
+            "bytes": null,
+            "date": "2024-11-19T12:47:32.904Z",
+            "edgeColor": null,
+            "idMember": "5d69710e621ef73737a3ce50",
+            "isUpload": false,
+            "mimeType": "",
+            "name": "TimeCamp Time Report",
+            "previews": [],
+            "url": "https://app.timecamp.com/app#/reports/projects_and_tasks/",
+            "pos": 16384,
+            "fileName": "app"
+        }
+    ],
+    "pluginData": [
+        {
+            "id": "676188a15f92ffe70aa314e1",
+            "idPlugin": "655f68bed3dee74f143b8c5a",
+            "scope": "card",
+            "idModel": "6723c5667538610237410acd",
+            "value": "{\"dateLastActivity\":\"2024-12-13T14:49:43.207Z\",\"PU_ANY_FIELDS-badges\":[{\"f\":6547,\"v\":\"0-3\"}]}",
+            "access": "shared",
+            "dateLastUpdated": "2024-12-31T14:47:47.742Z"
+        }
+    ],
+    "customFieldItems": []
+}
