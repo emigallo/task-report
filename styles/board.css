@@ -1,3 +1,7 @@
 .card {
     border: 1px solid #ccc;
 }
+
+.list {
+    background-color: aquamarine;
+}

@@ -19,7 +19,7 @@ function loadBoard(json) {
 
     result.actions.forEach(action => {
         if (action.data.card) {
-            board.addActionToCard(action, action.data.card.id);
+            board.addActionToCard(action.data.card.idList, action, action.data.card.id);
         }
     });
     this.render(board);
@@ -27,7 +27,26 @@ function loadBoard(json) {
 
 function render(board) {
     let container = document.getElementById('container');
-    board.cards.forEach(card => this.renderCard(container, card));
+    board.getAllList().forEach(list => {
+        this.renderList(container, list);
+    });
+}
+
+function renderList(container, list) {
+    let listElement = document.createElement('div');
+    listElement.className = 'list';
+    listElement.innerHTML = list.name;
+
+
+    list.getActiveCards().forEach(card => {
+        this.renderCard(container, card)
+    })
+
+    let totalElement = document.createElement('div');
+    listElement.className = 'list';
+    listElement.innerHTML = `Total: ${list.getTotalFromActiveCards()}`;
+    container.appendChild(listElement);
+    container.appendChild(totalElement);
 }
 
 function renderCard(container, card) {
@@ -58,11 +77,27 @@ class Board {
     }
 
     getList(id) {
-        this.list.filter(x => x.id == id)[0];
+        return this.list.filter(x => x.id == id)[0];
     }
 
-    addCard(listId, card) {
-        this.getList(listId).addCard(new Card(card));
+    getAllList() {
+        return this.list;
+    }
+
+    existsList(id) {
+        return this.list.filter(x => x.id == id).length > 0;
+    }
+
+    addCard(card) {
+        if (this.existsList(card.idList)) {
+            this.getList(card.idList).addCard(card);
+        }
+    }
+
+    addActionToCard(idList, action, cardId) {
+        if (this.existsList(idList)) {
+            this.getList(idList).addActionToCard(action, cardId);
+        }
     }
 }
 
@@ -93,6 +128,16 @@ class BoardList {
     getActiveCards() {
         return this.cards.filter(x => !x.closed);
     }
+
+    getTotalFromActiveCards() {
+        let total = 0;
+        this.getActiveCards().forEach(card => {
+            if (card.pluginData && card.pluginData.real) {
+                total += card.pluginData.real;
+            }
+        });
+        return total;
+    }
 }
 
 class Card {
@@ -102,9 +147,18 @@ class Card {
         this.idList = cardJson.idList;
         this.closed = cardJson.closed;
         if (cardJson.pluginData) {
-            cardJson.pluginData.forEach(element => {
-                this.pluginData = new pluginData(element);
-            });
+            try {
+                if (cardJson.pluginData.length) {
+                    cardJson.pluginData.forEach(element => {
+                        this.pluginData = new pluginData(element);
+                    });
+                } else if (cardJson.pluginData.id) {
+                    this.pluginData = new pluginData(cardJson.pluginData);
+                }
+            }
+            catch (error) {
+                console.log(error);
+            }
         }
     }
 
@@ -143,8 +197,8 @@ class pluginData {
         if (pluginDataJson.value) {
             let value = JSON.parse(pluginDataJson.value.replace('PU_ANY_FIELDS-badges', 'pUAnyFieldsBadges'));
             this.value = value.pUAnyFieldsBadges[0].v;
-            this.estimated = this.value.split('-')[0];
-            this.real = this.value.split('-')[1];
+            this.estimated =parseInt( this.value.split('-')[0]);
+            this.real = parseInt(this.value.split('-')[1]);
         }
         this.dateLastUpdated = pluginDataJson.dateLastUpdated;
     }
@@ -154,8 +208,8 @@ class pluginData {
     scope;
     idModel;
     value;
-    estimated;
-    real;
+    estimated = 0;
+    real = 0;
     dateLastUpdated;
 }
 
