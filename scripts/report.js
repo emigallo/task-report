@@ -1,4 +1,7 @@
 const CURRENT_SPRINT = '5d6971fd91e25d36ded88e39';
+const DEV = '5d6971fd91e25d36ded88e3c';
+const TEST = '5d6971fd91e25d36ded88e3d';
+const PROD = '5d9b5806a59aab25d1528b90';
 
 function readFile() {
     fetch('./files/6CQD42Sy - ghz-prep.json')
@@ -9,9 +12,10 @@ function readFile() {
 function loadBoard(json) {
     let result = JSON.parse(json);
     let board = new Board(result.id);
-    board.addList(CURRENT_SPRINT, 'Sprint Actual');
-
-    // filter(x => x.id == '6723c5667538610237410acd')
+    // board.addList(CURRENT_SPRINT, 'Sprint Actual');
+    // board.addList(DEV, 'En desarrollo');
+    board.addList(TEST, 'En test');
+    board.addList(PROD, 'En producción');
 
     result.cards.forEach(card => {
         board.addCard(card);
@@ -23,46 +27,57 @@ function loadBoard(json) {
         }
     });
     this.render(board);
+    console.log(board);
 }
 
 function render(board) {
     let container = document.getElementById('container');
     board.getAllList().forEach(list => {
         this.renderList(container, list);
+        container.appendChild(document.createElement('br'));
     });
+
+    let footer = document.createElement('div');
+     footer.innerHTML = `Total estimado: ${board.getTotalEstimatedFromActiveCards()} - Total real: ${board.getTotalRealFromActiveCards()}`;
+    container.appendChild(footer);
 }
 
 function renderList(container, list) {
-    let listElement = document.createElement('div');
-    listElement.className = 'list';
-    listElement.innerHTML = list.name;
+    let header = document.createElement('div');
+    header.className = 'list-header';
+    header.innerHTML = list.name;
+    container.appendChild(header);
 
-
-    list.getActiveCards().forEach(card => {
-        this.renderCard(container, card)
-    })
-
-    let totalElement = document.createElement('div');
-    listElement.className = 'list';
-    listElement.innerHTML = `Total: ${list.getTotalFromActiveCards()}`;
-    container.appendChild(listElement);
-    container.appendChild(totalElement);
+    this.renderCards(container, list);
 }
 
-function renderCard(container, card) {
-    let cardElement = document.createElement('div');
-    cardElement.className = 'card';
-    cardElement.innerHTML = card.name;
+function renderCards(container, list) {
+    const table = document.createElement('table');
+    table.style.border = '1px solid black';
 
-    let actionElement = document.createElement('div');
-    actionElement.className = 'action';
+    let header = table.insertRow();
+    header.insertCell().appendChild(document.createTextNode('Tarea'));
+    header.insertCell().appendChild(document.createTextNode('Estimadas'));
+    header.insertCell().appendChild(document.createTextNode('Reales'));
 
-    if (card.pluginData) {
-        actionElement.innerHTML = `Estimado: ${card.pluginData.estimated} - Real: ${card.pluginData.real}`;
-        cardElement.appendChild(actionElement);
-    }
+    list.getActiveCards().forEach((card, index) => {
+        let row = table.insertRow();
+        row.insertCell().appendChild(document.createTextNode(card.name));
+        let col2 = row.insertCell();
+        let col3 = row.insertCell();
 
-    container.appendChild(cardElement);
+        if (card.pluginData) {
+            col2.appendChild(document.createTextNode(card.pluginData.estimated));
+            col3.appendChild(document.createTextNode(card.pluginData.real));
+        }
+    });
+
+    let footer = table.insertRow();
+    footer.insertCell().appendChild(document.createTextNode('Total'));
+    footer.insertCell().appendChild(document.createTextNode(list.getTotalEstimatedFromActiveCards()));
+    footer.insertCell().appendChild(document.createTextNode(list.getTotalRealFromActiveCards()));
+
+    container.appendChild(table);
 }
 
 class Board {
@@ -99,6 +114,18 @@ class Board {
             this.getList(idList).addActionToCard(action, cardId);
         }
     }
+
+    getTotalRealFromActiveCards() {
+        let total = 0;
+        this.getAllList().forEach(list => total += list.getTotalRealFromActiveCards());
+        return total;
+    }
+
+    getTotalEstimatedFromActiveCards() {
+        let total = 0;
+        this.getAllList().forEach(list => total += list.getTotalEstimatedFromActiveCards());
+        return total;
+    }
 }
 
 class BoardList {
@@ -112,6 +139,9 @@ class BoardList {
     cards = [];
 
     addCard(card) {
+        if (card.idShort == 800) {
+            console.log(new Card(card).isAlreadyInvoced());
+        }
         this.cards.push(new Card(card));
     }
 
@@ -126,14 +156,24 @@ class BoardList {
     }
 
     getActiveCards() {
-        return this.cards.filter(x => !x.closed);
+        return this.cards.filter(x => !x.closed && !x.isAlreadyInvoced());
     }
 
-    getTotalFromActiveCards() {
+    getTotalRealFromActiveCards() {
         let total = 0;
         this.getActiveCards().forEach(card => {
             if (card.pluginData && card.pluginData.real) {
                 total += card.pluginData.real;
+            }
+        });
+        return total;
+    }
+
+    getTotalEstimatedFromActiveCards() {
+        let total = 0;
+        this.getActiveCards().forEach(card => {
+            if (card.pluginData && card.pluginData.real) {
+                total += card.pluginData.estimated;
             }
         });
         return total;
@@ -146,6 +186,7 @@ class Card {
         this.name = cardJson.name;
         this.idList = cardJson.idList;
         this.closed = cardJson.closed;
+        this.idShort = cardJson.idShort;
         if (cardJson.pluginData) {
             try {
                 if (cardJson.pluginData.length) {
@@ -160,6 +201,11 @@ class Card {
                 console.log(error);
             }
         }
+        if (cardJson.labels) {
+            cardJson.labels.forEach(label => {
+                this.labels.push(new CardLabel(label));
+            });
+        }
     }
 
     id;
@@ -169,6 +215,24 @@ class Card {
     action;
     idShort;
     pluginData = [];
+    labels = [];
+
+    isAlreadyInvoced() {
+        return this.labels.filter(x => x.name == 'facturado').length > 0;
+    }
+}
+
+class CardLabel {
+    constructor(cardLabelJson) {
+        this.id = cardLabelJson.id;
+        this.idBoard = cardLabelJson.idBoard;
+        this.name = cardLabelJson.name;
+        this.color = cardLabelJson.color;
+    }
+    id;
+    idBoard;
+    name;
+    color;
 }
 
 class Action {
@@ -196,9 +260,16 @@ class pluginData {
         this.idModel = pluginDataJson.idModel;
         if (pluginDataJson.value) {
             let value = JSON.parse(pluginDataJson.value.replace('PU_ANY_FIELDS-badges', 'pUAnyFieldsBadges'));
-            this.value = value.pUAnyFieldsBadges[0].v;
-            this.estimated =parseInt( this.value.split('-')[0]);
-            this.real = parseInt(this.value.split('-')[1]);
+            if (value.pUAnyFieldsBadges && value.pUAnyFieldsBadges.length > 0) {
+                this.value = value.pUAnyFieldsBadges[0].v;
+                if (this.value.includes('-')) {
+                    this.estimated = parseInt(this.value.split('-')[0]);
+                    this.real = parseInt(this.value.split('-')[1]);
+                } else {
+                    this.estimated = 0;
+                    this.real = 0;
+                }
+            }
         }
         this.dateLastUpdated = pluginDataJson.dateLastUpdated;
     }

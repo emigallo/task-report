@@ -2,6 +2,9 @@
     border: 1px solid #ccc;
 }
 
-.list {
+.list-header{
+    font-size: large;
+}
+.list-footer {
     background-color: aquamarine;
 }
