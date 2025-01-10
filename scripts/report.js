@@ -3,31 +3,40 @@ const DEV = '5d6971fd91e25d36ded88e3c';
 const TEST = '5d6971fd91e25d36ded88e3d';
 const PROD = '5d9b5806a59aab25d1528b90';
 
+
+
 function readFile() {
-    fetch('./files/6CQD42Sy - ghz-prep.json')
-        .then(function (response) { return response.json(); })
-        .then(function (data) { return loadBoard(JSON.stringify(data)); });
+    let opts = {
+        type: 'redirect',
+        name: 'Trello',
+        persist: true,
+        interactive: true,
+        expiration: 'never',
+        scope: { read: true, account: true },
+        success: function (s) { console.log('success:' + s); },
+        error: function (e) { console.log('error:' + e); },
+        return_url: 'http://127.0.0.1:5503/index.html'
+    };
+    Trello.authorize(opts);
+    Trello.get('/boards/6CQD42Sy/cards?pluginData=true', function (cards) {
+        loadCards(JSON.stringify(cards));
+        console.log(cards);
+    });
 }
 
-function loadBoard(json) {
-    let result = JSON.parse(json);
-    let board = new Board(result.id);
+function loadCards(cards) {
+    let result = JSON.parse(cards);
+    let board = new Board('');
     // board.addList(CURRENT_SPRINT, 'Sprint Actual');
-    // board.addList(DEV, 'En desarrollo');
+    board.addList(DEV, 'En desarrollo');
     board.addList(TEST, 'En test');
     board.addList(PROD, 'En producción');
 
-    result.cards.forEach(card => {
+    result.forEach(card => {
         board.addCard(card);
     });
 
-    result.actions.forEach(action => {
-        if (action.data.card) {
-            board.addActionToCard(action.data.card.idList, action, action.data.card.id);
-        }
-    });
     this.render(board);
-    console.log(board);
 }
 
 function render(board) {
@@ -38,7 +47,7 @@ function render(board) {
     });
 
     let footer = document.createElement('div');
-     footer.innerHTML = `Total estimado: ${board.getTotalEstimatedFromActiveCards()} - Total real: ${board.getTotalRealFromActiveCards()}`;
+    footer.innerHTML = `Total estimado: ${board.getTotalEstimatedFromActiveCards()} - Total real: ${board.getTotalRealFromActiveCards()}`;
     container.appendChild(footer);
 }
 
@@ -80,6 +89,18 @@ function renderCards(container, list) {
     container.appendChild(table);
 }
 
+function renderFilters() {
+    let container = document.getElementById('filters');
+    let html = `<div>`
+
+    let filters = ['Sprint Actual', 'En desarrollo', 'En test', 'En producción'];
+    filters.forEach(filter => {
+        html += `<input type="checkbox" id="${filter}" name="${filter}" value="${filter}"/>${filter}`;
+    });
+    html += `</div>`;
+    console.log(html);
+    container.innerHTML = html;
+}
 class Board {
     constructor(id) {
         this.id = id;
@@ -139,9 +160,6 @@ class BoardList {
     cards = [];
 
     addCard(card) {
-        if (card.idShort == 800) {
-            console.log(new Card(card).isAlreadyInvoced());
-        }
         this.cards.push(new Card(card));
     }
 
@@ -284,4 +302,6 @@ class pluginData {
     dateLastUpdated;
 }
 
+
+// renderFilters();
 readFile();
