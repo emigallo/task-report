@@ -1,11 +1,11 @@
-const CURRENT_SPRINT = '5d6971fd91e25d36ded88e39';
-const DEV = '5d6971fd91e25d36ded88e3c';
-const TEST = '5d6971fd91e25d36ded88e3d';
-const PROD = '5d9b5806a59aab25d1528b90';
+const CURRENT_SPRINT = { name: 'Sprint Actual', id: '5d6971fd91e25d36ded88e39' };
+const DEV = { name: 'En desarrollo', id: '5d6971fd91e25d36ded88e3c' };
+const TEST = { name: 'En test', id: '5d6971fd91e25d36ded88e3d' };
+const PROD = { name: 'En producción', id: '5d9b5806a59aab25d1528b90' };
+const LIST = [CURRENT_SPRINT, DEV, TEST, PROD];
 
 
-
-function readFile() {
+function readTrello(board, callback) {
     let opts = {
         type: 'redirect',
         name: 'Trello',
@@ -19,19 +19,12 @@ function readFile() {
     };
     Trello.authorize(opts);
     Trello.get('/boards/6CQD42Sy/cards?pluginData=true', function (cards) {
-        loadCards(JSON.stringify(cards));
-        console.log(cards);
+        callback(board, JSON.stringify(cards));
     });
 }
 
-function loadCards(cards) {
+function loadCards(board, cards) {
     let result = JSON.parse(cards);
-    let board = new Board('');
-    // board.addList(CURRENT_SPRINT, 'Sprint Actual');
-    board.addList(DEV, 'En desarrollo');
-    board.addList(TEST, 'En test');
-    board.addList(PROD, 'En producción');
-
     result.forEach(card => {
         board.addCard(card);
     });
@@ -41,6 +34,7 @@ function loadCards(cards) {
 
 function render(board) {
     let container = document.getElementById('container');
+    container.innerHTML = '';
     board.getAllList().forEach(list => {
         this.renderList(container, list);
         container.appendChild(document.createElement('br'));
@@ -62,29 +56,33 @@ function renderList(container, list) {
 
 function renderCards(container, list) {
     const table = document.createElement('table');
-    table.style.border = '1px solid black';
-
+    table.className = 'table';
     let header = table.insertRow();
     header.insertCell().appendChild(document.createTextNode('Tarea'));
     header.insertCell().appendChild(document.createTextNode('Estimadas'));
     header.insertCell().appendChild(document.createTextNode('Reales'));
+    header.insertCell().appendChild(document.createTextNode('Descripción'));
 
     list.getActiveCards().forEach((card, index) => {
         let row = table.insertRow();
         row.insertCell().appendChild(document.createTextNode(card.name));
         let col2 = row.insertCell();
         let col3 = row.insertCell();
+        let col4 = row.insertCell();
 
         if (card.pluginData) {
             col2.appendChild(document.createTextNode(card.pluginData.estimated));
             col3.appendChild(document.createTextNode(card.pluginData.real));
         }
+
+        col4.appendChild(document.createTextNode(card.desc));
     });
 
     let footer = table.insertRow();
     footer.insertCell().appendChild(document.createTextNode('Total'));
     footer.insertCell().appendChild(document.createTextNode(list.getTotalEstimatedFromActiveCards()));
     footer.insertCell().appendChild(document.createTextNode(list.getTotalRealFromActiveCards()));
+    footer.insertCell().appendChild(document.createTextNode(''));
 
     container.appendChild(table);
 }
@@ -93,23 +91,27 @@ function renderFilters() {
     let container = document.getElementById('filters');
     let html = `<div>`
 
-    let filters = ['Sprint Actual', 'En desarrollo', 'En test', 'En producción'];
-    filters.forEach(filter => {
-        html += `<input type="checkbox" id="${filter}" name="${filter}" value="${filter}"/>${filter}`;
+    LIST.forEach(filter => {
+        html += `<input class='filter-list' onchange='handleFilterChange()' type="checkbox" id="${filter.id}" name="${filter.name}"/>${filter.name}`;
     });
     html += `</div>`;
-    console.log(html);
+
+    html += `<div>
+        <input class='filter-invoiced' onchange='handleFilterChange()' type="checkbox"/>Solo sin factura
+    </div>`
     container.innerHTML = html;
 }
 class Board {
     constructor(id) {
         this.id = id;
+        this.onlyWithoutInvoice = false;
     }
     id;
+    onlyWithoutInvoice;
     list = [];
 
     addList(id, name) {
-        this.list.push(new BoardList(id, name));
+        this.list.push(new BoardList(id, name, this.onlyWithoutInvoice));
     }
 
     getList(id) {
@@ -150,13 +152,15 @@ class Board {
 }
 
 class BoardList {
-    constructor(id, name) {
+    constructor(id, name, onlyWithoutInvoice) {
         this.id = id;
         this.name = name;
+        this.onlyWithoutInvoice = onlyWithoutInvoice;
     }
 
     id;
     name;
+    onlyWithoutInvoice;
     cards = [];
 
     addCard(card) {
@@ -174,7 +178,11 @@ class BoardList {
     }
 
     getActiveCards() {
-        return this.cards.filter(x => !x.closed && !x.isAlreadyInvoced());
+        if (this.onlyWithoutInvoice) {
+            return this.cards.filter(x => !x.closed && !x.isAlreadyInvoced());
+        } else {
+            return this.cards.filter(x => !x.closed);
+        }
     }
 
     getTotalRealFromActiveCards() {
@@ -205,6 +213,7 @@ class Card {
         this.idList = cardJson.idList;
         this.closed = cardJson.closed;
         this.idShort = cardJson.idShort;
+        this.desc = cardJson.desc;
         if (cardJson.pluginData) {
             try {
                 if (cardJson.pluginData.length) {
@@ -232,6 +241,7 @@ class Card {
     closed;
     action;
     idShort;
+    desc;
     pluginData = [];
     labels = [];
 
@@ -302,6 +312,15 @@ class pluginData {
     dateLastUpdated;
 }
 
+function handleFilterChange() {
+    let board = new Board('');
+    board.onlyWithoutInvoice = $('.filter-invoiced')[0].checked == true;
+    let filters = $('.filter-list:checkbox:checked')
+    for (let i = 0; i < filters.length; i++) {
+        board.addList(filters[i].id, filters[i].name);
+    }
 
-// renderFilters();
-readFile();
+    readTrello(board, loadCards);
+}
+
+renderFilters();
