@@ -16,7 +16,7 @@ function readTrello(board, callback) {
         scope: { read: true, account: true },
         success: function (s) { console.log('success:' + s); },
         error: function (e) { console.log('error:' + e); },
-        return_url: window.location
+        return_url: window.href
     };
     Trello.authorize(opts);
     Trello.get('/boards/6CQD42Sy/cards?pluginData=true', function (cards) {
