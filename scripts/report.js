@@ -6,7 +6,6 @@ const LIST = [CURRENT_SPRINT, DEV, TEST, PROD];
 
 
 function readTrello(board, callback) {
-
     let opts = {
         type: 'redirect',
         name: 'Trello',
@@ -16,7 +15,7 @@ function readTrello(board, callback) {
         scope: { read: true, account: true },
         success: function (s) { console.log('success:' + s); },
         error: function (e) { console.log('error:' + e); },
-        return_url: window.href
+        return_url: window.location.href
     };
     Trello.authorize(opts);
     Trello.get('/boards/6CQD42Sy/cards?pluginData=true', function (cards) {
