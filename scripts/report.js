@@ -3,7 +3,8 @@ const DEV = { name: 'En desarrollo', id: '5d6971fd91e25d36ded88e3c' };
 const TEST = { name: 'En test', id: '5d6971fd91e25d36ded88e3d' };
 const PROD = { name: 'En producción', id: '5d9b5806a59aab25d1528b90' };
 const LIST = [CURRENT_SPRINT, DEV, TEST, PROD];
-
+let isFullInformation = false;
+// https://trello.com/power-ups/6781501626ad610fe7d3a1ea/edit/api-key
 
 function readTrello(board, callback) {
     let opts = {
@@ -71,8 +72,8 @@ function renderCards(container, list) {
         let col4 = row.insertCell();
 
         if (card.pluginData) {
-            col2.appendChild(document.createTextNode(card.pluginData.estimated));
-            col3.appendChild(document.createTextNode(card.pluginData.real));
+            col2.appendChild(document.createTextNode(card.pluginData.getEstimated()));
+            col3.appendChild(document.createTextNode(card.pluginData.getReal()));
         }
 
         col4.appendChild(document.createTextNode(card.desc));
@@ -188,8 +189,8 @@ class BoardList {
     getTotalRealFromActiveCards() {
         let total = 0;
         this.getActiveCards().forEach(card => {
-            if (card.pluginData && card.pluginData.real) {
-                total += card.pluginData.real;
+            if (card.pluginData && card.pluginData.getReal()) {
+                total += card.pluginData.getReal();
             }
         });
         return total;
@@ -198,8 +199,8 @@ class BoardList {
     getTotalEstimatedFromActiveCards() {
         let total = 0;
         this.getActiveCards().forEach(card => {
-            if (card.pluginData && card.pluginData.real) {
-                total += card.pluginData.estimated;
+            if (card.pluginData && card.pluginData.getEstimated()) {
+                total += card.pluginData.getEstimated();
             }
         });
         return total;
@@ -310,6 +311,22 @@ class pluginData {
     estimated = 0;
     real = 0;
     dateLastUpdated;
+
+    getEstimated() {
+        if (isFullInformation === false) {
+            if (this.estimated === 0) {
+                return this.real;
+            }
+        }
+        return this.estimated;
+    }
+
+    getReal() {
+        if (isFullInformation === true) {
+            return this.real;
+        }
+        return 0;
+    }
 }
 
 function handleFilterChange() {
